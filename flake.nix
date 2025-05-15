@@ -82,11 +82,11 @@
 
           postFixup = ''
             wrapProgram $out/bin/vectorcode \
-              --prefix PYTHONPATH : "$out/${pkgs.python312.sitePackages}"
+              --prefix PYTHONPATH : "$PYTHONPATH"
             wrapProgram $out/bin/vectorcode-server \
-              --prefix PYTHONPATH : "$out/${pkgs.python312.sitePackages}"
+              --prefix PYTHONPATH : "$PYTHONPATH"
             wrapProgram $out/bin/vectorcode-mcp-server \
-              --prefix PYTHONPATH : "$out/${pkgs.python312.sitePackages}"
+              --prefix PYTHONPATH : "$PYTHONPATH"
           '';
 
           postInstall = ''
