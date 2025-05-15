@@ -17,6 +17,27 @@
 
         pkgVersion = "0.5.6";
 
+        dependencies = with pkgs.python312Packages; [
+          chromadb
+          httpx
+          numpy
+          pathspec
+          psutil
+          pygments
+          sentence-transformers
+          shtab
+          tabulate
+          transformers
+          tree-sitter
+          tree-sitter-language-pack
+          google-api-python-client
+          colorlog
+          json5
+          lsprotocol
+          pygls
+        ];
+        pythonEnv = pkgs.python312.withPackages (ps: dependencies);
+
         vectorcode = pkgs.python312Packages.buildPythonApplication rec {
           pname = "vectorcode";
           version = pkgVersion;
@@ -28,24 +49,11 @@
             python312Packages.pdm-backend
             installShellFiles
           ];
-          propagatedBuildInputs = with pkgs.python312Packages; [
-            chromadb
-            httpx
-            numpy
-            pathspec
-            psutil
-            pygments
-            sentence-transformers
-            shtab
-            tabulate
-            transformers
-            tree-sitter
-            tree-sitter-language-pack
-            google-api-python-client
-            colorlog
-            json5
-            lsprotocol
-            pygls
+
+          propagatedBuildInputs = dependencies;
+
+          makeWrapperArgs = [
+            "--set PYTHONPATH ${pythonEnv}/${pythonEnv.sitePackages}"
           ];
 
           optional-dependencies = with pkgs.python312Packages; {
@@ -81,12 +89,9 @@
           postInstall = ''
             mkdir -p $out/share/completions
 
-            ${pkgs.python312Packages.shtab}/bin/shtab --shell=bash -u vectorcode.cli_utils.get_cli_parser \
-              | tee $out/share/completions/vectorcode.bash
-            ${pkgs.python312Packages.shtab}/bin/shtab --shell=zsh -u vectorcode.cli_utils.get_cli_parser \
-              | tee $out/share/completions/vectorcode.zsh
-
-            installShellCompletion $out/share/completions/vectorcode.{bash,zsh}
+            installShellCompletion --cmd vectorcode \
+            --bash <(${pkgs.python312Packages.shtab}/bin/shtab --shell=bash -u vectorcode.cli_utils.get_cli_parser) \
+            --zsh <(${pkgs.python312Packages.shtab}/bin/shtab --shell=zsh -u vectorcode.cli_utils.get_cli_parser)
           '';
 
           disabledTests = [
