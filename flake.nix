@@ -1,5 +1,5 @@
 {
-  description = "Python template";
+  description = "VectorCode";
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
@@ -17,27 +17,6 @@
 
         pkgVersion = "0.5.6";
 
-        dependencies = with pkgs.python312Packages; [
-          chromadb
-          httpx
-          numpy
-          pathspec
-          psutil
-          pygments
-          sentence-transformers
-          shtab
-          tabulate
-          transformers
-          tree-sitter
-          tree-sitter-language-pack
-          google-api-python-client
-          colorlog
-          json5
-          lsprotocol
-          pygls
-        ];
-        pythonEnv = pkgs.python312.withPackages (ps: dependencies);
-
         vectorcode = pkgs.python312Packages.buildPythonApplication rec {
           pname = "vectorcode";
           version = pkgVersion;
@@ -47,13 +26,28 @@
 
           nativeBuildInputs = with pkgs; [
             python312Packages.pdm-backend
+            makeWrapper
             installShellFiles
           ];
 
-          propagatedBuildInputs = dependencies;
-
-          makeWrapperArgs = [
-            "--set PYTHONPATH ${pythonEnv}/${pythonEnv.sitePackages}"
+          propagatedBuildInputs = with pkgs.python312Packages; [
+            chromadb
+            httpx
+            numpy
+            pathspec
+            psutil
+            pygments
+            sentence-transformers
+            shtab
+            tabulate
+            transformers
+            tree-sitter
+            tree-sitter-language-pack
+            google-api-python-client
+            colorlog
+            json5
+            lsprotocol
+            pygls
           ];
 
           optional-dependencies = with pkgs.python312Packages; {
@@ -86,12 +80,25 @@
           ];
           versionCheckProgramArg = "version";
 
-          postInstall = ''
-            mkdir -p $out/share/completions
+          postFixup = ''
+            wrapProgram $out/bin/vectorcode \
+              --prefix PYTHONPATH : "$out/${pkgs.python312.sitePackages}"
+            wrapProgram $out/bin/vectorcode-server \
+              --prefix PYTHONPATH : "$out/${pkgs.python312.sitePackages}"
+            wrapProgram $out/bin/vectorcode-mcp-server \
+              --prefix PYTHONPATH : "$out/${pkgs.python312.sitePackages}"
+          '';
 
+          postInstall = ''
             installShellCompletion --cmd vectorcode \
-            --bash <(${pkgs.python312Packages.shtab}/bin/shtab --shell=bash -u vectorcode.cli_utils.get_cli_parser) \
-            --zsh <(${pkgs.python312Packages.shtab}/bin/shtab --shell=zsh -u vectorcode.cli_utils.get_cli_parser)
+              --bash <($out/bin/vectorcode --print-completion bash) \
+              --zsh <($out/bin/vectorcode --print-completion zsh)
+            installShellCompletion --cmd vectorcode-server \
+              --bash <($out/bin/vectorcode --print-completion bash) \
+              --zsh <($out/bin/vectorcode --print-completion zsh)
+            installShellCompletion --cmd vectorcode-mcp-server \
+              --bash <($out/bin/vectorcode --print-completion bash) \
+              --zsh <($out/bin/vectorcode --print-completion zsh)
           '';
 
           disabledTests = [
