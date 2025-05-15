@@ -15,7 +15,7 @@
       let
         pkgs = import nixpkgs { inherit system; };
 
-        # INFO: This is a workaround until newer versions for the `chromadb` package are available
+        # INFO: This is a workaround until newer versions of the `chromadb` package are available
         chromadb = pkgs.python312Packages.buildPythonPackage rec {
           pname = "chromadb";
           version = "0.6.3";

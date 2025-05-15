@@ -15,6 +15,10 @@ local cacher = nil
 
 ---@type VectorCode.Opts
 local config = {
+  cli_cmds = {
+    vectorcode = "vectorcode",
+    vectorcode_server = "vectorcode-server",
+  },
   async_opts = {
     debounce = 10,
     events = { "BufWritePost", "InsertEnter", "BufReadPost" },
@@ -25,10 +29,6 @@ local config = {
     run_on_register = false,
     single_job = false,
     timeout_ms = 5000,
-  },
-  cli_cmds = {
-    vectorcode = "vectorcode",
-    vectorcode_server = "vectorcode-server",
   },
   async_backend = "default",
   exclude_this = true,
